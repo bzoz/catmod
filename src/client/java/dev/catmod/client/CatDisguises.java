@@ -8,7 +8,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.world.entity.EntitySpawnReason;
-import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.animal.feline.Cat;
 import org.jspecify.annotations.Nullable;
 
@@ -32,7 +32,7 @@ public final class CatDisguises {
 			CATS.clear(); // new world or dimension: drop old cats
 			catsLevel = level;
 		}
-		Cat cat = CATS.computeIfAbsent(player.getUUID(), uuid -> EntityType.CAT.create(level, EntitySpawnReason.LOAD));
+		Cat cat = CATS.computeIfAbsent(player.getUUID(), uuid -> EntityTypes.CAT.create(level, EntitySpawnReason.LOAD));
 		if (cat != null) {
 			copyPose(player, cat);
 		}
