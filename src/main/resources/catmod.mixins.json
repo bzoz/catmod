@@ -1,0 +1,12 @@
+{
+	"required": true,
+	"package": "dev.catmod.mixin",
+	"compatibilityLevel": "JAVA_21",
+	"mixins": [
+		"CreeperEntityMixin",
+		"PlayerEntityMixin"
+	],
+	"injectors": {
+		"defaultRequire": 1
+	}
+}

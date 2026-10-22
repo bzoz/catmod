@@ -1,0 +1,27 @@
+{
+	"schemaVersion": 1,
+	"id": "catmod",
+	"version": "${version}",
+	"name": "Kot",
+	"description": "Gracz jest kotem: wygląda jak kot, miauczy, nie robi sobie krzywdy przy upadku, widzi w ciemności, a creepery przed nim uciekają.",
+	"authors": ["Tata"],
+	"license": "MIT",
+	"environment": "*",
+	"entrypoints": {
+		"main": ["dev.catmod.CatMod"],
+		"client": ["dev.catmod.client.CatModClient"]
+	},
+	"mixins": [
+		"catmod.mixins.json",
+		{
+			"config": "catmod.client.mixins.json",
+			"environment": "client"
+		}
+	],
+	"depends": {
+		"fabricloader": ">=0.18.1",
+		"minecraft": "~1.21.11",
+		"java": ">=21",
+		"fabric-api": "*"
+	}
+}
