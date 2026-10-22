@@ -20,7 +20,7 @@ jobs:
       - name: Build
         id: build
         continue-on-error: true
-        run: chmod +x gradlew && ./gradlew build --stacktrace
+        run: chmod +x gradlew && ./gradlew build --stacktrace 2>&1 | tee build.log; exit ${PIPESTATUS[0]}
       - name: Class signatures (porting aid)
         if: always()
         run: >
@@ -28,10 +28,17 @@ jobs:
           EntityRenderDispatcher Creeper Cat TamableAnimal AvoidEntityGoal
           KeyMapping 'KeyMapping\$Category' KeyBindingHelper KeyMappingHelper
           PayloadTypeRegistry ServerPlayNetworking ClientPlayNetworking
-          | grep -vE '^\s*$' || true
+          | grep -vE '^\s*$' > diag.log || true
       - name: Cat sound constants
         if: always()
-        run: bash ci/diag.sh SoundEvents | grep -iE 'cat|=====' || true
+        run: bash ci/diag.sh SoundEvents | grep -iE 'cat|=====' > sounds.log || true
+      - name: Push logs to ci-logs branch
+        if: always()
+        run: |
+          mkdir /tmp/logs && cp build.log diag.log sounds.log /tmp/logs/ 2>/dev/null || true
+          cd /tmp/logs && git init -q -b ci-logs && git add -A
+          git -c user.name=ci -c user.email=ci@localhost commit -q -m "logs for ${{ github.sha }}"
+          git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" ci-logs
       - name: Fail if build failed
         if: steps.build.outcome != 'success'
         run: exit 1
