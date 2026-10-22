@@ -1,0 +1,5 @@
+===== net.minecraft.entity.EntityType
+  public static final net.minecraft.entity.EntityType<net.minecraft.entity.passive.CatEntity> CAT;
+===== net.minecraft.world.entity.EntityType
+===== net.minecraft.world.entity.EntityTypes
+  public static final net.minecraft.world.entity.EntityType<net.minecraft.world.entity.animal.feline.Cat> CAT;
