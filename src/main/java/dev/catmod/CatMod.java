@@ -5,17 +5,17 @@ import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import net.minecraft.entity.attribute.EntityAttribute;
-import net.minecraft.entity.attribute.EntityAttributeInstance;
-import net.minecraft.entity.attribute.EntityAttributeModifier;
-import net.minecraft.entity.attribute.EntityAttributes;
-import net.minecraft.entity.effect.StatusEffectInstance;
-import net.minecraft.entity.effect.StatusEffects;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.registry.entry.RegistryEntry;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.sound.SoundEvents;
-import net.minecraft.util.Identifier;
+import net.minecraft.core.Holder;
+import net.minecraft.resources.Identifier;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.entity.ai.attributes.Attribute;
+import net.minecraft.world.entity.ai.attributes.AttributeInstance;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.player.Player;
 
 public class CatMod implements ModInitializer {
 	public static final String MOD_ID = "catmod";
@@ -34,28 +34,28 @@ public class CatMod implements ModInitializer {
 	private static final int NIGHT_VISION_REFRESH_BELOW = 220; // vanilla flickers under 200
 
 	public static Identifier id(String path) {
-		return Identifier.of(MOD_ID, path);
+		return Identifier.fromNamespaceAndPath(MOD_ID, path);
 	}
 
 	/** Single switch for "is this player a cat". Everyone is, except spectators. */
-	public static boolean isCat(PlayerEntity player) {
+	public static boolean isCat(Player player) {
 		return !player.isSpectator();
 	}
 
 	@Override
 	public void onInitialize() {
-		PayloadTypeRegistry.playC2S().register(MeowPayload.ID, MeowPayload.CODEC);
+		PayloadTypeRegistry.playC2S().register(MeowPayload.TYPE, MeowPayload.CODEC);
 
-		ServerPlayNetworking.registerGlobalReceiver(MeowPayload.ID, (payload, context) -> {
-			ServerPlayerEntity player = context.player();
+		ServerPlayNetworking.registerGlobalReceiver(MeowPayload.TYPE, (payload, context) -> {
+			ServerPlayer player = context.player();
 			if (isCat(player)) {
 				// Broadcasts to everyone else; the meowing client plays its own copy locally.
-				player.playSound(SoundEvents.ENTITY_CAT_AMBIENT, 1.0f, randomPitch(player));
+				player.playSound(SoundEvents.CAT_AMBIENT, 1.0f, randomPitch(player));
 			}
 		});
 
 		ServerTickEvents.END_SERVER_TICK.register(server -> {
-			for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
+			for (ServerPlayer player : server.getPlayerList().getPlayers()) {
 				if (isCat(player)) {
 					applyCatPowers(player);
 				} else {
@@ -65,45 +65,44 @@ public class CatMod implements ModInitializer {
 		});
 	}
 
-	public static float randomPitch(PlayerEntity player) {
+	public static float randomPitch(Player player) {
 		return 0.9f + player.getRandom().nextFloat() * 0.3f;
 	}
 
-	private static void applyCatPowers(ServerPlayerEntity player) {
-		ensureModifier(player, EntityAttributes.SCALE, SCALE_ID,
-				CAT_SCALE - 1.0, EntityAttributeModifier.Operation.ADD_MULTIPLIED_TOTAL);
-		ensureModifier(player, EntityAttributes.MOVEMENT_SPEED, SPEED_ID,
-				CAT_SPEED_BONUS, EntityAttributeModifier.Operation.ADD_MULTIPLIED_BASE);
+	private static void applyCatPowers(ServerPlayer player) {
+		ensureModifier(player, Attributes.SCALE, SCALE_ID,
+				CAT_SCALE - 1.0, AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL);
+		ensureModifier(player, Attributes.MOVEMENT_SPEED, SPEED_ID,
+				CAT_SPEED_BONUS, AttributeModifier.Operation.ADD_MULTIPLIED_BASE);
 		// Multiplier of 0 => cats always land on their feet.
-		ensureModifier(player, EntityAttributes.FALL_DAMAGE_MULTIPLIER, FALL_ID,
-				-1.0, EntityAttributeModifier.Operation.ADD_MULTIPLIED_TOTAL);
+		ensureModifier(player, Attributes.FALL_DAMAGE_MULTIPLIER, FALL_ID,
+				-1.0, AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL);
 
-		StatusEffectInstance nightVision = player.getStatusEffect(StatusEffects.NIGHT_VISION);
+		MobEffectInstance nightVision = player.getEffect(MobEffects.NIGHT_VISION);
 		if (nightVision == null || nightVision.getDuration() < NIGHT_VISION_REFRESH_BELOW) {
 			// ambient, no particles, no HUD icon
-			player.addStatusEffect(new StatusEffectInstance(
-					StatusEffects.NIGHT_VISION, NIGHT_VISION_TICKS, 0, true, false, false));
+			player.addEffect(new MobEffectInstance(
+					MobEffects.NIGHT_VISION, NIGHT_VISION_TICKS, 0, true, false, false));
 		}
 	}
 
-	private static void removeCatPowers(ServerPlayerEntity player) {
-		removeModifier(player, EntityAttributes.SCALE, SCALE_ID);
-		removeModifier(player, EntityAttributes.MOVEMENT_SPEED, SPEED_ID);
-		removeModifier(player, EntityAttributes.FALL_DAMAGE_MULTIPLIER, FALL_ID);
+	private static void removeCatPowers(ServerPlayer player) {
+		removeModifier(player, Attributes.SCALE, SCALE_ID);
+		removeModifier(player, Attributes.MOVEMENT_SPEED, SPEED_ID);
+		removeModifier(player, Attributes.FALL_DAMAGE_MULTIPLIER, FALL_ID);
 	}
 
-	// Temporary modifiers are not saved to disk, so uninstalling the mod leaves the world clean.
-	private static void ensureModifier(PlayerEntity player, RegistryEntry<EntityAttribute> attribute,
-			Identifier modifierId, double amount, EntityAttributeModifier.Operation operation) {
-		EntityAttributeInstance instance = player.getAttributeInstance(attribute);
+	// Transient modifiers are not saved to disk, so uninstalling the mod leaves the world clean.
+	private static void ensureModifier(Player player, Holder<Attribute> attribute,
+			Identifier modifierId, double amount, AttributeModifier.Operation operation) {
+		AttributeInstance instance = player.getAttribute(attribute);
 		if (instance != null && !instance.hasModifier(modifierId)) {
-			instance.addTemporaryModifier(new EntityAttributeModifier(modifierId, amount, operation));
+			instance.addTransientModifier(new AttributeModifier(modifierId, amount, operation));
 		}
 	}
 
-	private static void removeModifier(PlayerEntity player, RegistryEntry<EntityAttribute> attribute,
-			Identifier modifierId) {
-		EntityAttributeInstance instance = player.getAttributeInstance(attribute);
+	private static void removeModifier(Player player, Holder<Attribute> attribute, Identifier modifierId) {
+		AttributeInstance instance = player.getAttribute(attribute);
 		if (instance != null && instance.hasModifier(modifierId)) {
 			instance.removeModifier(modifierId);
 		}

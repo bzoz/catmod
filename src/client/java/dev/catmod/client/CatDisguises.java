@@ -1,73 +1,73 @@
 package dev.catmod.client;
 
-import dev.catmod.mixin.client.LimbAnimatorAccessor;
+import dev.catmod.mixin.client.WalkAnimationStateAccessor;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.network.AbstractClientPlayerEntity;
-import net.minecraft.client.world.ClientWorld;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.SpawnReason;
-import net.minecraft.entity.passive.CatEntity;
-import org.jetbrains.annotations.Nullable;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.player.AbstractClientPlayer;
+import net.minecraft.world.entity.EntitySpawnReason;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.animal.feline.Cat;
+import org.jspecify.annotations.Nullable;
 
 /**
  * One invisible, never-spawned cat per player. At render time we copy the player's
  * position, rotation and walk animation onto it and let vanilla's cat renderer draw it.
  */
 public final class CatDisguises {
-	private static final Map<UUID, CatEntity> CATS = new HashMap<>();
-	private static @Nullable ClientWorld catsWorld;
+	private static final Map<UUID, Cat> CATS = new HashMap<>();
+	private static @Nullable ClientLevel catsLevel;
 
 	private CatDisguises() {
 	}
 
-	public static @Nullable CatEntity forPlayer(AbstractClientPlayerEntity player) {
-		ClientWorld world = MinecraftClient.getInstance().world;
-		if (world == null) {
+	public static @Nullable Cat forPlayer(AbstractClientPlayer player) {
+		ClientLevel level = Minecraft.getInstance().level;
+		if (level == null) {
 			return null;
 		}
-		if (world != catsWorld) {
+		if (level != catsLevel) {
 			CATS.clear(); // new world or dimension: drop old cats
-			catsWorld = world;
+			catsLevel = level;
 		}
-		CatEntity cat = CATS.computeIfAbsent(player.getUuid(), uuid -> EntityType.CAT.create(world, SpawnReason.LOAD));
+		Cat cat = CATS.computeIfAbsent(player.getUUID(), uuid -> EntityType.CAT.create(level, EntitySpawnReason.LOAD));
 		if (cat != null) {
 			copyPose(player, cat);
 		}
 		return cat;
 	}
 
-	private static void copyPose(AbstractClientPlayerEntity player, CatEntity cat) {
-		cat.setPosition(player.getX(), player.getY(), player.getZ());
-		cat.lastX = player.lastX;
-		cat.lastY = player.lastY;
-		cat.lastZ = player.lastZ;
-		cat.lastRenderX = player.lastRenderX;
-		cat.lastRenderY = player.lastRenderY;
-		cat.lastRenderZ = player.lastRenderZ;
+	private static void copyPose(AbstractClientPlayer player, Cat cat) {
+		cat.setPos(player.getX(), player.getY(), player.getZ());
+		cat.xo = player.xo;
+		cat.yo = player.yo;
+		cat.zo = player.zo;
+		cat.xOld = player.xOld;
+		cat.yOld = player.yOld;
+		cat.zOld = player.zOld;
 
-		cat.setYaw(player.getYaw());
-		cat.lastYaw = player.lastYaw;
-		cat.setPitch(player.getPitch());
-		cat.lastPitch = player.lastPitch;
-		cat.bodyYaw = player.bodyYaw;
-		cat.lastBodyYaw = player.lastBodyYaw;
-		cat.headYaw = player.headYaw;
-		cat.lastHeadYaw = player.lastHeadYaw;
+		cat.setYRot(player.getYRot());
+		cat.yRotO = player.yRotO;
+		cat.setXRot(player.getXRot());
+		cat.xRotO = player.xRotO;
+		cat.yBodyRot = player.yBodyRot;
+		cat.yBodyRotO = player.yBodyRotO;
+		cat.yHeadRot = player.yHeadRot;
+		cat.yHeadRotO = player.yHeadRotO;
 
-		cat.age = player.age;
+		cat.tickCount = player.tickCount;
 		cat.hurtTime = player.hurtTime;
-		cat.setOnGround(player.isOnGround());
+		cat.setOnGround(player.onGround());
 
 		// Sneak = sit, like a proper cat.
-		cat.setInSittingPose(player.isInSneakingPose());
+		cat.setInSittingPose(player.isCrouching());
 
-		LimbAnimatorAccessor from = (LimbAnimatorAccessor) player.limbAnimator;
-		LimbAnimatorAccessor to = (LimbAnimatorAccessor) cat.limbAnimator;
+		WalkAnimationStateAccessor from = (WalkAnimationStateAccessor) player.walkAnimation;
+		WalkAnimationStateAccessor to = (WalkAnimationStateAccessor) cat.walkAnimation;
 		to.catmod$setSpeed(from.catmod$getSpeed());
-		to.catmod$setLastSpeed(from.catmod$getLastSpeed());
-		to.catmod$setAnimationProgress(from.catmod$getAnimationProgress());
+		to.catmod$setSpeedOld(from.catmod$getSpeedOld());
+		to.catmod$setPosition(from.catmod$getPosition());
 	}
 }

@@ -1,4 +1,4 @@
-# Kot — Fabric mod for Minecraft 1.21.11
+# Kot — Fabric mod for Minecraft 26.2
 
 The player is a cat:
 - looks like a cat to others and in third person (F5); sneaking = sitting
@@ -7,16 +7,16 @@ The player is a cat:
 - creepers run away
 
 ## Build
-Requires JDK 21.
+Requires JDK 25.
 
     ./gradlew build          # Windows: gradlew.bat build
 
-Result: `build/libs/catmod-1.0.0.jar` (not the `-sources` one).
+Result: `build/libs/catmod-2.0.0.jar` (not the `-sources` one).
 
 ## Install
-1. Install Fabric Loader for 1.21.11 (https://fabricmc.net/use/installer/).
-2. Put `catmod-1.0.0.jar` and Fabric API for 1.21.11 (https://modrinth.com/mod/fabric-api) into `%APPDATA%\.minecraft\mods`.
-3. Start the "fabric-loader-1.21.11" profile in the launcher.
+1. Install Fabric Loader for 26.2 (https://fabricmc.net/use/installer/).
+2. Put `catmod-2.0.0.jar` and Fabric API for 26.2 (https://modrinth.com/mod/fabric-api) into `%APPDATA%\.minecraft\mods`.
+3. Start the "fabric-loader-26.2" profile in the launcher.
 
 Quick test without installing: `./gradlew runClient`.
 

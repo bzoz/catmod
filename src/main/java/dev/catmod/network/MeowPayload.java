@@ -1,18 +1,18 @@
 package dev.catmod.network;
 
 import dev.catmod.CatMod;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.packet.CustomPayload;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 
 /** Client -> server: "I meowed". Carries no data. */
-public record MeowPayload() implements CustomPayload {
+public record MeowPayload() implements CustomPacketPayload {
 	public static final MeowPayload INSTANCE = new MeowPayload();
-	public static final CustomPayload.Id<MeowPayload> ID = new CustomPayload.Id<>(CatMod.id("meow"));
-	public static final PacketCodec<RegistryByteBuf, MeowPayload> CODEC = PacketCodec.unit(INSTANCE);
+	public static final CustomPacketPayload.Type<MeowPayload> TYPE = new CustomPacketPayload.Type<>(CatMod.id("meow"));
+	public static final StreamCodec<RegistryFriendlyByteBuf, MeowPayload> CODEC = StreamCodec.unit(INSTANCE);
 
 	@Override
-	public Id<? extends CustomPayload> getId() {
-		return ID;
+	public Type<? extends CustomPacketPayload> type() {
+		return TYPE;
 	}
 }
