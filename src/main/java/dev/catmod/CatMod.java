@@ -44,7 +44,7 @@ public class CatMod implements ModInitializer {
 
 	@Override
 	public void onInitialize() {
-		PayloadTypeRegistry.playC2S().register(MeowPayload.TYPE, MeowPayload.CODEC);
+		PayloadTypeRegistry.serverboundPlay().register(MeowPayload.TYPE, MeowPayload.CODEC);
 
 		ServerPlayNetworking.registerGlobalReceiver(MeowPayload.TYPE, (payload, context) -> {
 			ServerPlayer player = context.player();

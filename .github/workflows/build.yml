@@ -31,7 +31,7 @@ jobs:
           | grep -vE '^\s*$' > diag.log || true
       - name: Cat sound constants
         if: always()
-        run: bash ci/diag.sh SoundEvents | grep -iE 'cat|=====' > sounds.log || true
+        run: bash ci/diag.sh CatSoundVariant CatSoundVariants 'CatSoundVariant\$CatSoundSet' > sounds.log || true
       - name: Push logs to ci-logs branch
         if: always()
         run: |
