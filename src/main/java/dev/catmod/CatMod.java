@@ -8,7 +8,6 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.core.Holder;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.ai.attributes.Attribute;
@@ -50,7 +49,7 @@ public class CatMod implements ModInitializer {
 			ServerPlayer player = context.player();
 			if (isCat(player)) {
 				// Broadcasts to everyone else; the meowing client plays its own copy locally.
-				player.playSound(SoundEvents.CAT_AMBIENT, 1.0f, randomPitch(player));
+				player.playSound(CatSounds.meow(player.level()), 1.0f, randomPitch(player));
 			}
 		});
 

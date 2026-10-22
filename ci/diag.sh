@@ -10,6 +10,6 @@ find_class() { # simple name -> FQCN list
 for name in "$@"; do
   for fq in $(find_class "$name"); do
     echo "===== $fq"
-    javap -p -cp "$cp_list" "$fq" 2>&1 | grep -vE 'lambda\$' | head -150
+    javap -p -cp "$cp_list" "$fq" 2>&1 | grep -vE 'lambda\$' | head -400
   done
 done

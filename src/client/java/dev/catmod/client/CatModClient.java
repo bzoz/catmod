@@ -8,7 +8,7 @@ import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.KeyMapping;
-import net.minecraft.sounds.SoundEvents;
+import dev.catmod.CatSounds;
 
 public class CatModClient implements ClientModInitializer {
 	private static final int MEOW_COOLDOWN_TICKS = 10;
@@ -31,7 +31,7 @@ public class CatModClient implements ClientModInitializer {
 					continue;
 				}
 				meowCooldown = MEOW_COOLDOWN_TICKS;
-				client.player.playSound(SoundEvents.CAT_AMBIENT, 1.0f, CatMod.randomPitch(client.player));
+				client.player.playSound(CatSounds.meow(client.player.level()), 1.0f, CatMod.randomPitch(client.player));
 				if (ClientPlayNetworking.canSend(MeowPayload.TYPE)) {
 					ClientPlayNetworking.send(MeowPayload.INSTANCE);
 				}
